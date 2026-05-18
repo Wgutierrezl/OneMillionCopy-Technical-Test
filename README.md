@@ -308,5 +308,3 @@ Se trabajó con cambios incrementales y commits descriptivos por fase (arquitect
 - **Planned**: Railway deployment
 
 ---
-
-Si necesitas, puedo preparar una versión corta del README para recruiter (1 página) y otra técnica extendida para revisores backend.
