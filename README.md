@@ -75,6 +75,21 @@ Para probar IA sin llaves reales, usa:
 - `AI_PROVIDER=mock`
 - `MOCK_AI_ENABLED=true`
 
+## Requisitos previos
+Para ejecutar el proyecto localmente se recomienda tener instalado:
+
+- Node.js >= 20
+- npm >= 10
+- Docker Desktop (opcional, recomendado para Docker Compose)
+- MySQL 8 (solo si se ejecuta sin Docker)
+
+Verificar instalaciones:
+```bash
+node -v
+npm -v
+docker -v
+```
+
 ## 5) Ejecución local (manual)
 ### 5.1 Instalar dependencias
 ```bash
