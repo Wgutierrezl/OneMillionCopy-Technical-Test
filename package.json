@@ -19,11 +19,21 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json --runInBand",
     "typeorm": "node --require ts-node/register --require tsconfig-paths/register ./node_modules/typeorm/cli.js -d src/database/data-source.ts",
+    "typeorm:prod": "node ./node_modules/typeorm/cli.js -d dist/database/data-source.js",
     "migration:run": "npm run typeorm -- migration:run",
     "migration:revert": "npm run typeorm -- migration:revert",
     "migration:generate": "npm run typeorm -- migration:generate src/database/migrations/AutoMigration",
     "migration:create": "npm run typeorm -- migration:create src/database/migrations/MigrationName",
-    "seed:run": "node --require ts-node/register --require tsconfig-paths/register src/database/seeds/seed-leads.ts"
+    "migration:run:prod": "npm run typeorm:prod -- migration:run",
+    "migration:revert:prod": "npm run typeorm:prod -- migration:revert",
+    "seed:run": "node --require ts-node/register --require tsconfig-paths/register src/database/seeds/seed-leads.ts",
+    "seed:run:prod": "node dist/database/seeds/seed-leads.js",
+    "db:migrate": "npm run migration:run",
+    "db:seed": "npm run seed:run",
+    "db:setup": "npm run db:migrate && npm run db:seed",
+    "db:migrate:prod": "npm run migration:run:prod",
+    "db:seed:prod": "npm run seed:run:prod",
+    "db:setup:prod": "npm run db:migrate:prod && npm run db:seed:prod"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

@@ -13,6 +13,7 @@ Backend API REST para gestionar leads provenientes de embudos de marketing, con 
 - class-validator + class-transformer
 - OpenAI SDK (compatibilidad para OpenAI y Groq vía baseURL)
 - Jest + Supertest (e2e)
+- Docker + Docker Compose
 
 ## 3. Decisiones técnicas tomadas
 - Arquitectura modular estándar NestJS (`auth`, `leads`, `ai`, `common`, `config`).
@@ -25,6 +26,7 @@ Backend API REST para gestionar leads provenientes de embudos de marketing, con 
 - Trazabilidad de cambios DB con tabla `typeorm_migrations`.
 - Integración IA multiprovider con fallback ordenado: Groq -> OpenAI -> Mock.
 - Tests e2e enfocados en flujo real (auth + JWT + leads + IA mock).
+- Dockerización con imagen multi-stage y MySQL contenerizado con volumen persistente.
 
 ## 4. Funcionalidades implementadas por fases
 - Fase 1:
@@ -42,6 +44,12 @@ Backend API REST para gestionar leads provenientes de embudos de marketing, con 
   - Manejo de ausencia de API keys y fallback a mock.
 - Fase 4 (bonus calidad):
   - Suite e2e para auth, protección JWT, validaciones, CRUD leads, stats, soft delete y resumen IA con mock.
+- Fase 5 (devops local):
+  - `Dockerfile` multi-stage para build y runtime.
+  - `docker-compose.yml` con servicios `api` y `mysql`.
+  - Healthcheck de MySQL + `depends_on` con `service_healthy`.
+  - Volumen persistente `mysql_data`.
+  - Scripts DB para entorno dev y entorno compilado (`db:migrate`, `db:seed`, `db:setup`, `*:prod`).
 
 ## 5. Endpoints implementados
 Auth:
@@ -68,23 +76,35 @@ Leads (protegidos con JWT admin):
 ## 7. Base de datos y trazabilidad
 - DB elegida: MySQL.
 - Migraciones en `src/database/migrations`.
-- DataSource CLI: `src/database/data-source.ts`.
+- DataSource CLI: `src/database/data-source.ts` (TS/dev) y `dist/database/data-source.js` (JS/prod).
 - Tabla de trazabilidad: `typeorm_migrations`.
 - Tablas creadas por migración inicial: `users`, `leads`.
 
-## 8. Comandos de migraciones, seed y tests
-- `npm run migration:run`
-- `npm run migration:revert`
-- `npm run migration:create`
-- `npm run migration:generate`
-- `npm run seed:run`
+## 8. Comandos principales
+Local:
+- `npm run start:dev`
+- `npm run db:migrate`
+- `npm run db:seed`
+- `npm run db:setup`
 - `npm run test:e2e`
-- `npm run test`
 
-## 9. Pendientes próximos
-- Dockerfile y docker-compose.
-- README final.
-- Swagger refinado (respuestas/ejemplos detallados).
+Docker:
+- `docker compose up --build`
+- `docker compose logs -f api`
+- `docker compose exec api npm run db:migrate:prod`
+- `docker compose exec api npm run db:seed:prod`
+
+## 9. Uso básico en Docker
+- API: `http://localhost:3000`
+- Swagger: `http://localhost:3000/api/docs`
+- Registrar admin:
+  - `POST /api/v1/auth/register`
+  - Body: `{ "name": "Admin User", "email": "admin@test.com", "password": "123456" }`
+- Login:
+  - `POST /api/v1/auth/login`
+
+## 10. Pendientes próximos
+- Rate limiting.
+- CI/CD con GitHub Actions.
 - Deploy Railway.
-- GitHub Actions CI/CD.
-- Endpoint webhook opcional `POST /leads/webhook`.
+- README final.
