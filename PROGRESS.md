@@ -14,6 +14,7 @@ Backend API REST para gestionar leads provenientes de embudos de marketing, con 
 - OpenAI SDK (compatibilidad para OpenAI y Groq vía baseURL)
 - Jest + Supertest (e2e)
 - Docker + Docker Compose
+- @nestjs/throttler (rate limiting)
 
 ## 3. Decisiones técnicas tomadas
 - Arquitectura modular estándar NestJS (`auth`, `leads`, `ai`, `common`, `config`).
@@ -27,6 +28,7 @@ Backend API REST para gestionar leads provenientes de embudos de marketing, con 
 - Integración IA multiprovider con fallback ordenado: Groq -> OpenAI -> Mock.
 - Tests e2e enfocados en flujo real (auth + JWT + leads + IA mock).
 - Dockerización con imagen multi-stage y MySQL contenerizado con volumen persistente.
+- Rate limiting global con `ThrottlerGuard` y configuración por variables de entorno.
 
 ## 4. Funcionalidades implementadas por fases
 - Fase 1:
@@ -50,6 +52,10 @@ Backend API REST para gestionar leads provenientes de embudos de marketing, con 
   - Healthcheck de MySQL + `depends_on` con `service_healthy`.
   - Volumen persistente `mysql_data`.
   - Scripts DB para entorno dev y entorno compilado (`db:migrate`, `db:seed`, `db:setup`, `*:prod`).
+- Fase 6 (bonus seguridad):
+  - Rate limiting global con `ThrottlerModule.forRootAsync(...)` + `APP_GUARD` (`ThrottlerGuard`).
+  - Configurable por `RATE_LIMIT_TTL` y `RATE_LIMIT_LIMIT`.
+  - En entorno `test`, límite elevado para evitar falsos negativos en e2e.
 
 ## 5. Endpoints implementados
 Auth:
@@ -104,7 +110,6 @@ Docker:
   - `POST /api/v1/auth/login`
 
 ## 10. Pendientes próximos
-- Rate limiting.
 - CI/CD con GitHub Actions.
 - Deploy Railway.
 - README final.
