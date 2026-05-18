@@ -1,10 +1,12 @@
-import {
+Ôªøimport {
   BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { AiSummaryRequestDto } from '../ai/dto/ai-summary-request.dto';
+import { SanitizedLeadInput } from '../ai/interfaces/ai-provider.interface';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { QueryLeadsDto } from './dto/query-leads.dto';
 import { UpdateLeadDto } from './dto/update-lead.dto';
@@ -26,7 +28,7 @@ export class LeadsService {
     });
 
     if (existingLead) {
-      throw new BadRequestException('El email ya est· registrado como lead');
+      throw new BadRequestException('El email ya est√° registrado como lead');
     }
 
     const lead = this.leadsRepository.create({
@@ -95,7 +97,7 @@ export class LeadsService {
       });
 
       if (existingLead) {
-        throw new BadRequestException('El email ya est· registrado como lead');
+        throw new BadRequestException('El email ya est√° registrado como lead');
       }
     }
 
@@ -143,6 +145,90 @@ export class LeadsService {
       })),
       averageBudget: avgBudgetRaw?.avg ? Number(avgBudgetRaw.avg) : 0,
       leadsLast7Days: last7Days,
+    };
+  }
+
+  async getLeadsForAiSummary(filters: AiSummaryRequestDto): Promise<{
+    leads: SanitizedLeadInput[];
+    sourceBreakdown: Array<{ fuente: string; total: number }>;
+    averageBudget: number;
+    last7Days: number;
+    topProducts: Array<{ producto_interes: string; total: number }>;
+  }> {
+    const qb = this.leadsRepository.createQueryBuilder('lead');
+
+    if (filters.fuente) {
+      qb.andWhere('lead.fuente = :fuente', { fuente: filters.fuente });
+    }
+
+    if (filters.startDate) {
+      qb.andWhere('lead.created_at >= :startDate', {
+        startDate: new Date(filters.startDate),
+      });
+    }
+
+    if (filters.endDate) {
+      qb.andWhere('lead.created_at <= :endDate', {
+        endDate: new Date(filters.endDate),
+      });
+    }
+
+    const leads = await qb.orderBy('lead.created_at', 'DESC').getMany();
+
+    const sanitizedLeads: SanitizedLeadInput[] = leads.map((lead) => ({
+      nombre: lead.nombre,
+      fuente: lead.fuente,
+      producto_interes: lead.producto_interes,
+      presupuesto:
+        lead.presupuesto !== null && lead.presupuesto !== undefined
+          ? Number(lead.presupuesto)
+          : null,
+      created_at: lead.created_at,
+    }));
+
+    const sourceMap = new Map<string, number>();
+    let budgetSum = 0;
+    let budgetCount = 0;
+    let last7Days = 0;
+    const productMap = new Map<string, number>();
+    const now = Date.now();
+    const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+
+    for (const lead of sanitizedLeads) {
+      sourceMap.set(lead.fuente, (sourceMap.get(lead.fuente) ?? 0) + 1);
+
+      if (lead.presupuesto !== null && lead.presupuesto !== undefined) {
+        budgetSum += Number(lead.presupuesto);
+        budgetCount += 1;
+      }
+
+      if (now - new Date(lead.created_at).getTime() <= sevenDaysMs) {
+        last7Days += 1;
+      }
+
+      if (lead.producto_interes) {
+        productMap.set(
+          lead.producto_interes,
+          (productMap.get(lead.producto_interes) ?? 0) + 1,
+        );
+      }
+    }
+
+    const sourceBreakdown = Array.from(sourceMap.entries())
+      .map(([fuente, total]) => ({ fuente, total }))
+      .sort((a, b) => b.total - a.total);
+
+    const topProducts = Array.from(productMap.entries())
+      .map(([producto_interes, total]) => ({ producto_interes, total }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 5);
+
+    return {
+      leads: sanitizedLeads,
+      sourceBreakdown,
+      averageBudget: budgetCount > 0 ? budgetSum / budgetCount : 0,
+      last7Days,
+      topProducts,
     };
   }
 }
