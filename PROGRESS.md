@@ -56,6 +56,12 @@ Backend API REST para gestionar leads provenientes de embudos de marketing, con 
   - Rate limiting global con `ThrottlerModule.forRootAsync(...)` + `APP_GUARD` (`ThrottlerGuard`).
   - Configurable por `RATE_LIMIT_TTL` y `RATE_LIMIT_LIMIT`.
   - En entorno `test`, límite elevado para evitar falsos negativos en e2e.
+- Fase 7 (bonus webhook):
+  - Endpoint público `POST /api/v1/leads/webhook`.
+  - Simulación de recepción de leads desde Typeform/Tally/Webflow.
+  - Reutilización de la lógica de creación de leads (`LeadsService.create`).
+  - Sin JWT/API key.
+  - Casos e2e para webhook (éxito, validación, duplicado).
 
 ## 5. Endpoints implementados
 Auth:
@@ -70,6 +76,9 @@ Leads (protegidos con JWT admin):
 - `PATCH /api/v1/leads/:id`
 - `DELETE /api/v1/leads/:id`
 - `POST /api/v1/leads/ai/summary`
+
+Leads (público):
+- `POST /api/v1/leads/webhook`
 
 ## 6. Validaciones implementadas
 - `nombre`: obligatorio, mínimo 2 caracteres.

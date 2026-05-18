@@ -15,6 +15,7 @@ describe('Auth + Leads + AI Summary (e2e)', () => {
   const testId = Date.now();
   const testEmail = `e2e.lead.${testId}@example.com`;
   const testEmailDuplicate = `e2e.lead.dup.${testId}@example.com`;
+  const webhookEmail = `e2e.lead.webhook.${testId}@example.com`;
   const adminEmail = `e2e.admin.${testId}@example.com`;
 
   beforeAll(async () => {
@@ -78,6 +79,47 @@ describe('Auth + Leads + AI Summary (e2e)', () => {
 
   it('should reject leads endpoint without JWT', async () => {
     await request(app.getHttpServer()).get('/api/v1/leads').expect(401);
+  });
+
+  it('should create lead from webhook without JWT', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/v1/leads/webhook')
+      .send({
+        nombre: 'Lead Webhook',
+        email: webhookEmail,
+        telefono: '3001234567',
+        fuente: 'landing_page',
+        producto_interes: 'Bootcamp de ventas',
+        presupuesto: 500,
+      })
+      .expect(201);
+
+    expect(response.body.message).toBe('Webhook lead received successfully');
+    expect(response.body.lead).toBeDefined();
+    expect(response.body.lead.email).toBe(webhookEmail.toLowerCase());
+    expect(response.body.lead.fuente).toBe('landing_page');
+  });
+
+  it('should validate invalid webhook payload', async () => {
+    await request(app.getHttpServer())
+      .post('/api/v1/leads/webhook')
+      .send({
+        nombre: 'A',
+        email: 'correo-no-valido',
+        fuente: 'fuente_invalida',
+      })
+      .expect(400);
+  });
+
+  it('should reject duplicate webhook email', async () => {
+    await request(app.getHttpServer())
+      .post('/api/v1/leads/webhook')
+      .send({
+        nombre: 'Lead Webhook Duplicado',
+        email: webhookEmail,
+        fuente: 'landing_page',
+      })
+      .expect(400);
   });
 
   it('should register admin user', async () => {
