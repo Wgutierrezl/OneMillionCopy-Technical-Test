@@ -296,6 +296,22 @@ npx tsc -p tsconfig.json --noEmit
 
 Nota: e2e usa configuración IA mock para evitar depender de API keys reales.
 
+### Entorno de testing
+El proyecto soporta un entorno dedicado para pruebas e2e, aislado del entorno de desarrollo y producción.
+
+Ejemplo:
+```env
+NODE_ENV=test
+DB_NAME_TEST=one_million_test_test
+AI_PROVIDER=mock
+MOCK_AI_ENABLED=true
+```
+
+Esto permite:
+- Usar una base de datos separada para pruebas (`DB_NAME_TEST`).
+- Evitar dependencias de API keys reales durante tests.
+- Proteger datos de desarrollo/producción de ejecuciones e2e.
+
 ## 15) Swagger
 - URL: `http://localhost:3000/api/docs`
 - Para endpoints protegidos, usar `Authorize` con Bearer token.
@@ -304,7 +320,20 @@ Nota: e2e usa configuración IA mock para evitar depender de API keys reales.
 Se trabajó con cambios incrementales y commits descriptivos por fase (arquitectura, auth, leads, migraciones, IA, tests, Docker, rate limiting, webhook).
 
 ## 17) Deployment
-- **Production URL**: pending
-- **Planned**: Railway deployment
+El backend fue desplegado utilizando:
+
+- Render (hosting del backend NestJS)
+- Railway MySQL (hosting de la base de datos)
+
+URL pública de producción:  
+https://onemillioncopy-technical-test.onrender.com
+
+Documentación Swagger:  
+https://onemillioncopy-technical-test.onrender.com/api/docs
+
+Notas:
+- La base de datos se encuentra desplegada separadamente en Railway.
+- Las variables de entorno se manejan de forma segura desde la plataforma de despliegue.
+- Docker sigue disponible para desarrollo local y reproducibilidad del entorno.
 
 ---
