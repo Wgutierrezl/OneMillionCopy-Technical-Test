@@ -15,13 +15,21 @@ function getEnv(name: string, fallback?: string): string {
   return value;
 }
 
+function resolveDatabaseName(): string {
+  if (process.env.NODE_ENV === 'test' && process.env.DB_NAME_TEST) {
+    return process.env.DB_NAME_TEST;
+  }
+
+  return getEnv('DB_NAME', 'one_million_test');
+}
+
 export const typeOrmConfig: DataSourceOptions = {
   type: 'mysql',
   host: getEnv('DB_HOST', 'localhost'),
   port: parseInt(getEnv('DB_PORT', '3306'), 10),
   username: getEnv('DB_USERNAME', 'root'),
   password: getEnv('DB_PASSWORD', ''),
-  database: getEnv('DB_NAME', 'one_million_test'),
+  database: resolveDatabaseName(),
   entities: isTsRuntime
     ? [User, Lead, 'src/**/*.entity.ts']
     : [User, Lead, 'dist/**/*.entity.js'],

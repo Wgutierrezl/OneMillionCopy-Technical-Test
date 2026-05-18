@@ -12,6 +12,7 @@ Backend API REST para gestionar leads provenientes de embudos de marketing, con 
 - Swagger/OpenAPI
 - class-validator + class-transformer
 - OpenAI SDK (compatibilidad para OpenAI y Groq vía baseURL)
+- Jest + Supertest (e2e)
 
 ## 3. Decisiones técnicas tomadas
 - Arquitectura modular estándar NestJS (`auth`, `leads`, `ai`, `common`, `config`).
@@ -23,6 +24,7 @@ Backend API REST para gestionar leads provenientes de embudos de marketing, con 
 - `synchronize` deshabilitado y esquema gestionado por migraciones TypeORM.
 - Trazabilidad de cambios DB con tabla `typeorm_migrations`.
 - Integración IA multiprovider con fallback ordenado: Groq -> OpenAI -> Mock.
+- Tests e2e enfocados en flujo real (auth + JWT + leads + IA mock).
 
 ## 4. Funcionalidades implementadas por fases
 - Fase 1:
@@ -38,6 +40,8 @@ Backend API REST para gestionar leads provenientes de embudos de marketing, con 
   - Prompt ejecutivo en español para análisis comercial.
   - Sanitización de datos enviados al LLM (sin email ni teléfono).
   - Manejo de ausencia de API keys y fallback a mock.
+- Fase 4 (bonus calidad):
+  - Suite e2e para auth, protección JWT, validaciones, CRUD leads, stats, soft delete y resumen IA con mock.
 
 ## 5. Endpoints implementados
 Auth:
@@ -68,16 +72,17 @@ Leads (protegidos con JWT admin):
 - Tabla de trazabilidad: `typeorm_migrations`.
 - Tablas creadas por migración inicial: `users`, `leads`.
 
-## 8. Comandos de migraciones y seed
+## 8. Comandos de migraciones, seed y tests
 - `npm run migration:run`
 - `npm run migration:revert`
 - `npm run migration:create`
 - `npm run migration:generate`
 - `npm run seed:run`
+- `npm run test:e2e`
+- `npm run test`
 
 ## 9. Pendientes próximos
 - Dockerfile y docker-compose.
-- Tests.
 - README final.
 - Swagger refinado (respuestas/ejemplos detallados).
 - Deploy Railway.
